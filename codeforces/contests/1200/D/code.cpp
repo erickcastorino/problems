@@ -2,100 +2,76 @@
 using namespace std;
 
 const int N = 2019;
-const int WHITE = 2 * N;
+
 char a[N][N];
 
-typedef pair<int, int> pii;
-pii row[N], col[N];
-
-int sumRow[N][N], sumCol[N][N];
+int acc[N][N];
 
 int main () {
-    int n, k;
-    scanf("%d %d", &n, &k);
+  int n, k;
+  scanf("%d %d", &n, &k);
 
-    for (int i = 0; i < n; i++) {
-        scanf("%s", a[i]);
-        printf("%s\n", a[i]);
+  for (int i = 0; i < n; i++) {
+    scanf("%s", a[i]);
+  }
 
-        row[i] = { WHITE, WHITE };
-        col[i] = { WHITE, WHITE };
+  int alreadyWhite = 0;
+
+  for (int i = 0; i < n; i++) {
+    int l = 0;
+    while (l < n && a[i][l] == 'W') l++;
+    if (l == n) {
+      alreadyWhite++;
+      continue;
     }
 
-    printf("k = %d\n", k);
+    int r = n - 1;
+    while (r >= 0 && a[i][r] == 'W') r--;
+    if (r - l + 1 > k) continue;
 
-    for (int i = 0; i < n; i++) {
-        for (int j = 0; j < n; j++) {
-            if (a[i][j] == 'B') {
-                if (row[i].first == WHITE) {
-                    row[i].first = j;
-                }
-                row[i].second = j;
+    int rs = max(0, i - k + 1), re = i + 1;
+    int cs = max(0, r - k + 1), ce = l + 1;
+    acc[rs][cs]++;
+    acc[rs][ce]--;
+    acc[re][cs]--;
+    acc[re][ce]++;
+  }
 
-                if (col[j].first == WHITE) {
-                    col[j].first = i;
-                }
-                col[j].second = i;
-            }
-        }
+  for (int j = 0; j < n; j++) {
+    int t = 0;
+    while (t < n && a[t][j] == 'W') t++;
+    if (t == n) {
+      alreadyWhite++;
+      continue;
     }
 
-    int alreadyWhite = 0;
+    int b = n - 1;
+    while (b >= 0 && a[b][j] == 'W') b--;
+    if (b - t + 1 > k) continue;
 
-    for (int i = 0; i < n; i++) {
-        // printf("row[%d]: { %d, %d }\n", i, row[i].first, row[i].second);
-        if (row[i].first == WHITE) {
-            alreadyWhite++;
-            continue;
-        }
+    int rs = max(0, b - k + 1), re = t + 1;
+    int cs = max(0, j - k + 1), ce = j + 1;
+    acc[rs][cs]++;
+    acc[rs][ce]--;
+    acc[re][cs]--;
+    acc[re][ce]++;
+  }
 
-        if (row[i].second - (k - 1) <= row[i].first) {
-            int s = max(0, row[i].second - (k - 1));
-            int e = min(n - 1, row[i].first + 1);
-
-            sumRow[i][s]++;
-            sumRow[i][e]--;
-        }
-    }
-
+  for (int i = 0; i < n; i++) {
     for (int j = 0; j < n; j++) {
-        // printf("col[%d]: { %d, %d }\n", j, col[j].first, col[j].second);
-        if (col[j].first == WHITE) {
-            alreadyWhite++;
-            continue;
-        }
-
-        if (col[j].second - (k - 1) <= col[j].first) {
-            int s = max(0, col[j].second - (k - 1));
-            int e = min(n - 1, col[j].first + 1);
-
-            sumCol[s][j]++;
-            sumCol[e][j]--;
-        }
+      acc[i][j] += i ? acc[i-1][j] : 0;
     }
+  }
 
-    for (int i = 1; i < n; i++) {
-        for (int j = 1; j < n; j++) {
-            sumRow[i][j] += sumRow[i][j - 1];
-            sumCol[i][j] += sumCol[i - 1][j];
-        }
+  int maxi = 0;
+
+  for (int i = 0; i < n; i++) {
+    for (int j = 0; j < n; j++) {
+      acc[i][j] += j ? acc[i][j-1] : 0;
+      maxi = max(maxi, acc[i][j]);
     }
+  }
 
-    for (int i = 0; i < n; i++) {
-        for (int j = 0; j < n; j++) {
-            printf("%d", sumRow[i][j]);
-        }
-        putchar('\n');
-    }
-
-    int maxi = 0;
-
-    for (int i = 0; i < n; i++) {
-        for (int j = 0; j < n; j++) {
-            maxi = max(maxi, sumRow[i][j] + sumCol[i][j]);
-        }
-    }
-
-    printf("%d\n", alreadyWhite + maxi);
-    return 0;
+  printf("%d\n", maxi + alreadyWhite);
+  return 0;
 }
