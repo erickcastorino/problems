@@ -2,42 +2,46 @@
 using namespace std;
 
 const int N = 505;
-int a[N][N], n, mini, maxi;
-bool leaf = false;
+int n;
 
-void run (int i, int j, int sum) {
-  int l = n - i;
-  if (i == n || j == l) return;
-
-  sum += a[i][j];
-
-  if (j == l - 1) {
-    if (leaf) {
-      mini = min(mini, sum);
-      maxi = max(maxi, sum);
-    } else {
-      leaf = true;
-      mini = maxi = sum;
-    }
+typedef struct {
+  int mini, maxi, x;
+  void leaf () {
+    mini = maxi = x;
   }
+  void updateMin (int a, int b) {
+    mini = min(x + a, x + b);
+  }
+  void updateMax (int a, int b) {
+    maxi = max(x + a, x + b);
+  }
+} cell;
 
-  run(i+1, j, sum);
-  run(i, j+1, sum);
-}
+cell a[N][N];
 
 int main () {
   cin >> n;
 
   for (int i = 0, l = n; i < n; i++, l--) {
     for (int j = 0; j < l; j++) {
-      cin >> a[i][j];
+      cin >> a[i][j].x;
     }
   }
 
-  run(0, 0, 0);
+  for (int i = 0; i < n; i++) {
+    a[i][n - i - 1].leaf();
+  }
 
-  cout << "maximo: " << maxi << endl;
-  cout << "minimo: " << mini << endl;
+  for (int j = 1; j < n; j++) {
+    for (int i = 0; i < n - j; i++) {
+      int k = n - j - i - 1;
+      a[i][k].updateMax(a[i+1][k].maxi, a[i][k+1].maxi);
+      a[i][k].updateMin(a[i+1][k].mini, a[i][k+1].mini);
+    }
+  }
+
+  cout << "maximo: " << a[0][0].maxi << endl;
+  cout << "minimo: " << a[0][0].mini << endl;
 
   return 0;
 }
